@@ -118,6 +118,7 @@ export default function LoginForm(props) {
       </div>
       <br />
       <button type="submit" style={{ width: '100%', padding: '10px', backgroundColor: '#8e44ad', color: 'white', border: 'none', borderRadius: '4px' }}>Submit</button>
+      <div>Need an account? <a href="/register">Register</a></div>
     </form>
   );
 }

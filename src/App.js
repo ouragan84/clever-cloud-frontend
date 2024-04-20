@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginForm from './pages/Login';
 import Home from './pages/MainPage';
-import RegistrationForm from './Register';
+import RegistrationForm from './pages/Register';
 
 import env from "react-dotenv";
 
