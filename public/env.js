@@ -64,5 +64,6 @@ window.env = {
   "HOMEBREW_CELLAR": "/opt/homebrew/Cellar",
   "npm_node_execpath": "/opt/homebrew/Cellar/node/21.7.3/bin/node",
   "npm_config_prefix": "/opt/homebrew",
-  "COLORTERM": "truecolor"
+  "COLORTERM": "truecolor",
+  "BACKEND_URL": "http://127.0.0.1:5000"
 };
