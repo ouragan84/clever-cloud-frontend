@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/MainPageStyles.css';
-import { FaPencilAlt, FaSearch, FaFile, FaFolder } from 'react-icons/fa';
+import { FaPencilAlt, FaSearch } from 'react-icons/fa';
 import p5 from 'p5';
 
 import env from "react-dotenv";
@@ -8,10 +8,16 @@ import env from "react-dotenv";
 const BACKEND_URL = env.BACKEND_URL;
 
 const generateItems = (count) => {
-    return Array.from({ length: count }, (_, i) => ({
-        id: i,
-        type: i % 2 === 0 ? 'file' : 'folder'
-    }));
+  let items = [];
+  for (let i = 0; i < count; i++) {
+      items.push({
+          id: i,
+          title: `File ${i}`,
+          previewImage: null, // Placeholder for now
+          dateUploaded: new Date().toLocaleDateString()
+      });
+  }
+  return items;
 };
 
 export default function MainPage() {
@@ -97,9 +103,6 @@ export default function MainPage() {
         setIsModalOpen(!isModalOpen);
     };
 
-    const handleColorChange = (newColor) => () => {
-        setCurrentColor(newColor);
-    };
 
     const chooseFile = async () => {
       const input = document.createElement('input');
@@ -135,38 +138,43 @@ export default function MainPage() {
       }
   };
 
-    return (
-      <div className="container">
-        <div className="searchBox">
-          <FaSearch className="searchIcon leftIcon" />
-          <input
-            type="text"
-            className="searchInput"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search..."
-          />
-          <FaPencilAlt className="searchIcon rightIcon" onClick={toggleModal} />
+  // Functionality for the Visualize button (Placeholder for now)
+  const handleVisualize = () => {
+    console.log('Visualize action triggered');
+  };
 
-          {/*button that opens up a file search and directly uploads it*/}
-          <button onClick={() => chooseFile()}>Upload File</button>
-
-        </div>
-        {isModalOpen && (
-          <div className="modal">
-            <div className="modalContent">
-              <button onClick={toggleModal}>Close</button>
-              <div ref={sketchRef}></div> {/* P5.js canvas will attach here */}
-            </div>  
-          </div>
-        )}
-        <div className="grid">
-            {items.map(item => (
-                <div key={item.id} className="item">
-                    {item.type === 'file' ? <FaFile /> : <FaFolder />}
-                </div>
-            ))}
-        </div>
+  return (
+    <div className="container">
+      <button className="buttonTop uploadButton" onClick={() => chooseFile()}>Upload File</button>
+      <button className="buttonTop visualizeButton" onClick={handleVisualize}>Visualize</button>
+      <div className="searchBox">
+        <FaSearch className="searchIcon leftIcon" />
+        <input
+          type="text"
+          className="searchInput"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search..."
+        />
+        <FaPencilAlt className="searchIcon rightIcon" onClick={() => setIsModalOpen(true)} />
       </div>
-    );
+      {isModalOpen && (
+        <div className="modal">
+          <div className="modalContent">
+            <button onClick={() => setIsModalOpen(false)}>Close</button>
+            <div ref={sketchRef}></div>
+          </div>  
+        </div>
+      )}
+      <div className="grid">
+          {items.map(item => (
+              <div key={item.id} className="item">
+                  <div className="title">{item.title}</div>
+                  <div className="previewImage"></div>
+                  <div className="dateUploaded">{item.dateUploaded}</div>
+              </div>
+          ))}
+      </div>
+    </div>
+  );
 }
