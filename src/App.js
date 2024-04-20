@@ -30,7 +30,7 @@ function App() {
         <Routes>
           <Route path="/login" element={!authToken ? <LoginForm setToken={setAuthToken} /> : <Navigate replace to="/" />} />
           <Route path="/register" element={!authToken ? <RegistrationForm setToken={setAuthToken} /> : <Navigate replace to="/" />} />
-          <Route path="/" element={authToken ? <Home /> : <Navigate replace to="/login" />} />
+          <Route path="/" element={authToken ? <Home /> : <Navigate replace to="/register" />} />
           <Route path="*" element={<Navigate to={authToken ? "/" : "/login"} />} />
         </Routes>
       </div>
