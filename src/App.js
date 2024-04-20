@@ -2,11 +2,14 @@
 import React from 'react';
 import LoginForm from './pages/Login';
 import MainPage from './pages/MainPage';
+import RegistrationForm from './Register';
 
 function App() {
   return (
     <div className="App">
-      <MainPage />
+      {/* <MainPage /> */}
+      <LoginForm/>
+      <RegistrationForm/>
     </div>
   );
 }
