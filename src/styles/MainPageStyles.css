@@ -1,0 +1,96 @@
+/* Styles for the container */
+.container {
+    display: flex;
+    flex-direction: column; /* Stack children vertically */
+    align-items: flex-start; /* Align children to the start (left) */
+    width: 90%; /* Take full width of the viewport */
+    padding: 20px; /* Padding around the container */
+}
+
+/* Styles for the search box containing input and icons */
+.searchBox {
+    display: flex;
+    align-items: center;
+    width: 50%; /* Adjust the width of the entire search box as needed */
+    margin-bottom: 20px; /* Space between search box and grid */
+}
+
+/* Styles for the search input */
+.searchInput {
+    flex-grow: 1; /* Makes the input take up all available space */
+    padding: 10px 5px; /* Adjust padding for visual balance */
+    font-size: 16px;
+    border: 1px solid #ccc; /* Optional, adds a border around the input field */
+}
+
+/* General styles for icons in the search box */
+.searchIcon {
+    padding: 10px;
+    background: #eee; /* Background color for the icons */
+    color: #333; /* Color of the icons */
+    border: 1px solid #ccc; /* Border to match the input field */
+}
+
+/* Additional style to differentiate left icon */
+.leftIcon {
+    border-right: none; /* Remove the right border to merge visually with the input */
+}
+
+/* Additional style to differentiate right icon */
+.rightIcon {
+    border-left: none; /* Remove the left border to merge visually with the input */
+}
+
+/* Styles for the modal overlay */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Styles for the modal content */
+.modalContent {
+    width: 300px; /* Adjust size as needed */
+    height: 300px; /* Adjust size as needed */
+    background: white;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Styles for the grid layout */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Creates a responsive grid */
+    gap: 10px; /* Space between grid items */
+    width: 100%; /* Grid takes full width to align items */
+}
+
+.item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px; /* Fixed height for each item */
+    background-color: #f0f0f0; /* Light background for visibility */
+    border: 1px solid #ccc; /* Border for each item */
+}
+
+/* Additional styles for color buttons */
+.color-buttons {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.color-buttons button {
+    cursor: pointer;
+}
