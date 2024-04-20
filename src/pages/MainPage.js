@@ -1,50 +1,79 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/MainPageStyles.css';
-import { FaPencilAlt, FaSearch, FaFile, FaFolder } from 'react-icons/fa';
+import { FaPencilAlt, FaSearch } from 'react-icons/fa';
 import p5 from 'p5';
 
-const generateItems = (count) => {
-    return Array.from({ length: count }, (_, i) => ({
-        id: i,
-        type: i % 2 === 0 ? 'file' : 'folder'
-    }));
-};
+import env from "react-dotenv";
 
-const rainbowColors = ['#FF0000', '#FF7E00', '#FFFF00', '#008000', '#0000CC', '#4B0082', '#8B00E8']; // Typical rainbow colors
+const BACKEND_URL = env.BACKEND_URL;
+
+const generateItems = (count) => {
+  let items = [];
+  for (let i = 0; i < count; i++) {
+      items.push({
+          id: i,
+          title: `File ${i}`,
+          previewImage: null, // Placeholder for now
+          dateUploaded: new Date().toLocaleDateString()
+      });
+  }
+  return items;
+};
 
 export default function MainPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [numItems, setNumItems] = useState(20);
+    const [numItems, setNumItems] = useState(20); // Default number of items
     const [items, setItems] = useState(generateItems(numItems));
-    const [currentColor, setCurrentColor] = useState(rainbowColors[0]); // Default color is red
     const sketchRef = useRef();
     const p5Instance = useRef(null);
 
     const Sketch = (p) => {
-        let prevX = null;
-        let prevY = null;
+        let currentColor = '#e81416'; // Default color (Red)
+        const colors = ['#e81416', '#ffa500', '#faeb36', '#79c314', '#4b369d', '#000000', '#FFFFFF'];
+        const colorPickerHeight = 40; // Height of the color picker area
+        let lastX = -1;
+        let lastY = -1;
 
         p.setup = () => {
             p.createCanvas(300, 300);
-            p.background(0);
+            p.background(230);
         };
 
         p.draw = () => {
-            console.log(currentColor)
-            p.stroke(currentColor);
-            p.strokeWeight(2);
+            // Draw color picker boxes
+            colors.forEach((color, index) => {
+                p.noStroke();
+                p.fill(color);
+                p.rect(index * (p.width / colors.length), 0, p.width / colors.length, colorPickerHeight);
+            });
 
             if (p.mouseIsPressed) {
-                if (prevX !== null && prevY !== null) {
-                    p.line(prevX, prevY, p.mouseX, p.mouseY);
+                if (p.mouseY > colorPickerHeight) {
+                    p.stroke(currentColor);
+                    p.strokeWeight(5);
+                    if (lastX !== -1 && lastY !== -1) {
+                        p.line(lastX, lastY, p.mouseX, p.mouseY);
+                    }
+                    lastX = p.mouseX;
+                    lastY = p.mouseY;
+                } else {
+                    // Check if click is within the color picker area
+                    const selectedColorIndex = Math.floor(p.mouseX / (p.width / colors.length));
+                    currentColor = colors[selectedColorIndex];
+                    lastX = -1; // Reset to avoid drawing lines from the color picker
+                    lastY = -1;
                 }
-                prevX = p.mouseX;
-                prevY = p.mouseY;
             } else {
-                prevX = null;
-                prevY = null;
+                lastX = -1; // Reset on mouse release
+                lastY = -1;
             }
+        };
+
+        p.mouseReleased = () => {
+            // Reset last positions on mouse release to prevent continuous line drawing
+            lastX = -1;
+            lastY = -1;
         };
     };
 
@@ -53,82 +82,99 @@ export default function MainPage() {
             p5Instance.current = new p5(Sketch, sketchRef.current);
         } else {
             if (p5Instance.current) {
+                // Console log the canvas as base64 when the modal is closed
                 const canvas = p5Instance.current.canvas;
                 const base64Image = canvas.toDataURL("image/png");
                 console.log(base64Image);
                 
-                p5Instance.current.remove();
+                p5Instance.current.remove(); // Clean up the sketch
                 p5Instance.current = null;
             }
         }
 
         return () => {
             if (p5Instance.current) {
-                p5Instance.current.remove();
+                p5Instance.current.remove(); // Ensure clean up if the component unmounts
             }
         };
     }, [isModalOpen]);
-
-    // Add this effect to update the sketch when the color changes
-    useEffect(() => {
-        if (p5Instance.current) {
-            p5Instance.current.stroke(currentColor);
-        }
-    }, [currentColor]);
 
     const toggleModal = () => {
         setIsModalOpen(!isModalOpen);
     };
 
-    const handleColorChange = (newColor) => () => {
-        setCurrentColor(newColor);
-    };
 
-    return (
-      <div className="container">
-        <div className="searchBox">
-          <FaSearch className="searchIcon leftIcon" />
-          <input
-            type="text"
-            className="searchInput"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search..."
-          />
-          <FaPencilAlt className="searchIcon rightIcon" onClick={toggleModal} />
-        </div>
-        {isModalOpen && (
-          <div className="modal">
-            <div className="modalContent">
-              <button onClick={toggleModal}>Close</button>
-              <div ref={sketchRef}></div> {/* P5.js canvas will attach here */}
-              
-              {/* Color buttons */}
-              <div className="color-buttons">
-                {rainbowColors.map(color => (
-                  <button
-                    key={color}
-                    style={{
-                      backgroundColor: color,
-                      width: '30px',
-                      height: '30px',
-                      margin: '5px',
-                      border: currentColor === color ? '2px solid black' : 'none'
-                    }}
-                    onClick={handleColorChange(color)}
-                  />
-                ))}
-              </div>
-            </div>  
-          </div>
-        )}
-        <div className="grid">
-            {items.map(item => (
-                <div key={item.id} className="item">
-                    {item.type === 'file' ? <FaFile /> : <FaFolder />}
-                </div>
-            ))}
-        </div>
+    const chooseFile = async () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.png, .jpg, .jpeg, .gif, .txt, .pdf, .doc, .docx';
+      input.onchange = async (e) => {
+          const file = e.target.files[0];
+          await uploadFile(file);
+      };
+      input.click();
+  };
+  
+  const uploadFile = async (file) => {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+          const response = await fetch(`${BACKEND_URL}/upload-file`, {
+              method: 'POST',
+              body: formData,
+          });
+  
+          if (response.ok) {
+              const responseData = await response.json();
+              console.log(responseData.message);
+          } else {
+              console.error('Failed to upload file');
+              const errorResponse = await response.json();
+              console.error(errorResponse.message);
+          }
+      } catch (error) {
+          console.error('Failed to upload file', error);
+      }
+  };
+
+  // Functionality for the Visualize button (Placeholder for now)
+  const handleVisualize = () => {
+    console.log('Visualize action triggered');
+  };
+
+  return (
+    <div className="container">
+      <button className="buttonTop uploadButton" onClick={() => chooseFile()}>Upload File</button>
+      <button className="buttonTop visualizeButton" onClick={handleVisualize}>Visualize</button>
+      <div className="searchBox">
+        <FaSearch className="searchIcon leftIcon" />
+        <input
+          type="text"
+          className="searchInput"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search..."
+        />
+        <FaPencilAlt className="searchIcon rightIcon" onClick={() => setIsModalOpen(true)} />
       </div>
-    );
+      {isModalOpen && (
+        <div className="modal">
+          <div className="modalContent">
+            <button onClick={() => setIsModalOpen(false)}>Close</button>
+            <div ref={sketchRef}></div>
+          </div>  
+        </div>
+      )}
+      <div className="grid">
+          {items.map(item => (
+              <div key={item.id} className="item">
+                  <div className="title">{item.title}</div>
+                  <div className="previewImage"></div>
+                  <div className="dateUploaded">{item.dateUploaded}</div>
+              </div>
+          ))}
+      </div>
+    </div>
+  );
 }
