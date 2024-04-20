@@ -3,6 +3,10 @@ import '../styles/MainPageStyles.css';
 import { FaPencilAlt, FaSearch, FaFile, FaFolder } from 'react-icons/fa';
 import p5 from 'p5';
 
+import env from "react-dotenv";
+
+const BACKEND_URL = env.BACKEND_URL;
+
 const generateItems = (count) => {
     return Array.from({ length: count }, (_, i) => ({
         id: i,
@@ -93,6 +97,44 @@ export default function MainPage() {
         setIsModalOpen(!isModalOpen);
     };
 
+    const handleColorChange = (newColor) => () => {
+        setCurrentColor(newColor);
+    };
+
+    const chooseFile = async () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.png, .jpg, .jpeg, .gif, .txt, .pdf, .doc, .docx';
+      input.onchange = async (e) => {
+          const file = e.target.files[0];
+          await uploadFile(file);
+      };
+      input.click();
+  };
+  
+  const uploadFile = async (file) => {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+          const response = await fetch(`${BACKEND_URL}/upload-file`, {
+              method: 'POST',
+              body: formData,
+          });
+  
+          if (response.ok) {
+              const responseData = await response.json();
+              console.log(responseData.message);
+          } else {
+              console.error('Failed to upload file');
+              const errorResponse = await response.json();
+              console.error(errorResponse.message);
+          }
+      } catch (error) {
+          console.error('Failed to upload file', error);
+      }
+  };
+
     return (
       <div className="container">
         <div className="searchBox">
@@ -105,6 +147,10 @@ export default function MainPage() {
             placeholder="Search..."
           />
           <FaPencilAlt className="searchIcon rightIcon" onClick={toggleModal} />
+
+          {/*button that opens up a file search and directly uploads it*/}
+          <button onClick={() => chooseFile()}>Upload File</button>
+
         </div>
         {isModalOpen && (
           <div className="modal">
