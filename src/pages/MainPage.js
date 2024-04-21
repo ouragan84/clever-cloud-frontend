@@ -22,27 +22,31 @@ const generateItems = (count) => {
     title: 'gf4ivbey05ntgb2kyqe2g6j6ksewv5j4',
     extension: 'png',
     previewImage: null, // Placeholder for now
-    dateUploaded: new Date().toLocaleDateString()
+    dateUploaded: new Date().toLocaleDateString(),
+    dateModified: new Date().toLocaleDateString(),
+    userCreated: 'user1',
+    pca_vector: [0.1, 0.2, 0.3]
+
     });
 
-    items.push({
-      id: '5q1dy6u6omgnlq3kvxvfv4llz0vtvbtl',
-      title: '5q1dy6u6omgnlq3kvxvfv4llz0vtvbtl',
-      extension: 'pdf',
-      previewImage: null, // Placeholder for now
-      dateUploaded: new Date().toLocaleDateString()
-      });
+  //   items.push({
+  //     id: '5q1dy6u6omgnlq3kvxvfv4llz0vtvbtl',
+  //     title: '5q1dy6u6omgnlq3kvxvfv4llz0vtvbtl',
+  //     extension: 'pdf',
+  //     previewImage: null, // Placeholder for now
+  //     dateUploaded: new Date().toLocaleDateString()
+  //     });
 
-  for (let i = 0; i < count; i++) {
-    let ext = fileTypes[Math.floor(Math.random() * fileTypes.length)];
-    items.push({
-      id: i,
-      title: `File ${i}.${ext}`,
-      extension: ext,
-      previewImage: null, // Placeholder for now
-      dateUploaded: new Date().toLocaleDateString()
-    });
-  }
+  // for (let i = 0; i < count; i++) {
+  //   let ext = fileTypes[Math.floor(Math.random() * fileTypes.length)];
+  //   items.push({
+  //     id: i,
+  //     title: `File ${i}.${ext}`,
+  //     extension: ext,
+  //     previewImage: null, // Placeholder for now
+  //     dateUploaded: new Date().toLocaleDateString()
+  //   });
+  // }
   return items;
 };
 
@@ -64,7 +68,7 @@ export default function MainPage() {
     };
   
     const openFile = (file, file_extension) => {
-      if (file_extension === 'jpeg' || file_extension === 'gif' || file_extension === 'png') {
+      if (file_extension === 'jpeg' || file_extension === 'gif' || file_extension === 'png' || file_extension === 'jpg' || file_extension === 'gif') {
         console.log(file)
         setCurrentFile(file);
         setImgModalOpen(true);
@@ -82,6 +86,35 @@ export default function MainPage() {
       link.click();
       document.body.removeChild(link);
     };
+
+    useEffect(() => {
+      const fetchItems = async () => {
+        const response = await fetch(`${BACKEND_URL}/get-all`);
+        const data = await response.json();
+        console.log(data);
+    
+        const newItems = data.matches.map(match => {
+          const item = match.metadata;
+          const pca_vector = item.pca_representation.map(pca => parseFloat(pca));
+    
+          return {
+            id: item.id,
+            title: item.file_name,
+            extension: item.extension,
+            previewImage: null, // Placeholder for now
+            dateUploaded: new Date(item.date_uploaded).toLocaleDateString(),
+            dateModified: new Date(item.date_modified).toLocaleDateString(),
+            userCreated: item.user_created,
+            pca_vector: pca_vector
+          };
+        });
+    
+        setItems(newItems);
+      };
+    
+      fetchItems();
+    }, []);
+    
 
     useEffect(() => {
         if (isModalOpen) {
@@ -113,6 +146,7 @@ export default function MainPage() {
         case 'docx':
           return <IoDocumentText style={{ ...iconStyle, color: 'blue' }} />;
         case 'jpeg':
+        case 'jpg':
         case 'gif':
         case 'png':
           return <IoImage style={{ ...iconStyle, color: 'green' }} />;
