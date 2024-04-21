@@ -67,6 +67,9 @@ export default function MainPage() {
     const [numPages, setNumPages] = useState(null);
     const [searchVector, setSearchVector] = useState([0, 0, 0]);
 
+    const [allowImage, setAllowImage] = useState(true);
+    const [allowDocument, setAllowDocument] = useState(true);
+
     const [visualizeModalOpen, setVisualizeModalOpen] = useState(false);
 
 
@@ -147,35 +150,18 @@ export default function MainPage() {
     }, [isModalOpen]);
 
     const sendSearchResquestText = async (searchText) => {
-      // POST request to backend with JSON body
-
-      /*
-      {
-          "method": "text",
-          "query": "Company Logo blue",
-          "limit": 10,
-          "type": {
-              "image": true,
-              "document": false
-          }
-      }
-    */
-
       const requestBody = {
         method: "text",
         query: searchText,
-        limit: 10,
+        limit: 100,
         type: {
-          image: true,
-          document: true
+          image: allowImage,
+          document: allowDocument
         }
       };
-
+    
       console.log(requestBody);
-
-      // .then to handle the response
-      // .catch to handle errors
-
+    
       fetch(`${BACKEND_URL}/search`, {
         method: 'POST',
         headers: {
@@ -194,7 +180,7 @@ export default function MainPage() {
         const newItems = data.results.matches.map(match => {
           const item = match.metadata;
           const pca_vector = item.pca_representation.map(pca => parseFloat(pca));
-
+    
           return {
             id: item.id,
             title: item.file_name,
@@ -207,16 +193,23 @@ export default function MainPage() {
             score: match.score
           };
         });
-
-        setItems(newItems);
-
+    
+        // Sort items to put those with the search text in the file name at the top
+        const prioritizedItems = newItems.sort((a, b) => {
+          const aMatches = a.title.toLowerCase().includes(searchText.toLowerCase());
+          const bMatches = b.title.toLowerCase().includes(searchText.toLowerCase());
+          return bMatches - aMatches; // This will put true values (1) before false values (0)
+        });
+    
+        setItems(prioritizedItems);
+    
         const pca_vector_query = data.query_pca_representation.map(pca => parseFloat(pca));
         setSearchVector(pca_vector_query);
       }).catch(error => {
         console.error('Failed to search', error);
       });
-
     }
+    
 
     const sendSearchResquestSketch = async (base64Sketch) => {
       // same as sendSearchResquestText but with base64Sketch instead of searchText 
@@ -237,10 +230,10 @@ export default function MainPage() {
       const requestBody = {
         method: "image",
         image: base64Sketch,
-        limit: 10,
+        limit: 100,
         type: {
-          image: true,
-          document: true
+          image: allowImage,
+          document: allowDocument
         }
       };
 
@@ -445,6 +438,12 @@ export default function MainPage() {
             placeholder="Search..."
           />
           <FaPencilAlt className="searchIcon rightIcon" onClick={() => setIsModalOpen(true)} />
+
+          <input type="checkbox" checked={allowImage} onChange={(e) => setAllowImage(e.target.checked)} />
+          <label>Image</label>
+          <input type="checkbox" checked={allowDocument} onChange={(e) => setAllowDocument(e.target.checked)} />
+          <label>Document</label>
+
         </div>
         {isModalOpen && (
           <div className="modal">

@@ -11,7 +11,7 @@
     display: flex;
     align-items: center;
     justify-content: center; /* Center items within the search box */
-    width: 50%; /* Adjust the width of the entire search box as needed */
+    width: 70%; /* Adjust the width of the entire search box as needed */
     margin-bottom: 20px; /* Space between search box and grid */
 }
 
