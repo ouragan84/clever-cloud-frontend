@@ -25,7 +25,8 @@ const generateItems = (count) => {
     dateUploaded: new Date().toLocaleDateString(),
     dateModified: new Date().toLocaleDateString(),
     userCreated: 'user1',
-    pca_vector: [0.1, 0.2, 0.3]
+    pca_vector: [0.1, 0.2, 0.3],
+    score: 0
 
     });
 
@@ -105,7 +106,8 @@ export default function MainPage() {
             dateUploaded: new Date(item.date_uploaded).toLocaleDateString(),
             dateModified: new Date(item.date_modified).toLocaleDateString(),
             userCreated: item.user_created,
-            pca_vector: pca_vector
+            pca_vector: pca_vector,
+            score: match.score
           };
         });
     
