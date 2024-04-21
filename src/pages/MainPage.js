@@ -4,7 +4,11 @@ import { FaPencilAlt, FaSearch } from 'react-icons/fa';
 import p5 from 'p5';
 
 import env from "react-dotenv";
-import { IoDocumentSharp, IoDocumentText, IoImage } from "react-icons/io5";
+import { IoDocumentSharp, IoDocumentText, IoImage, IoClose, IoArrowDownCircle } from "react-icons/io5";
+
+import { Document, Page, pdfjs } from 'react-pdf';
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+
 
 const BACKEND_URL = env.BACKEND_URL;
 
@@ -12,13 +16,22 @@ const fileTypes = ['pdf', 'doc', 'docx', 'txt', 'jpeg', 'gif', 'png'];
 
 const generateItems = (count) => {
   let items = [];
+  //5q1dy6u6omgnlq3kvxvfv4llz0vtvbtl
   items.push({
-    id: '5q1dy6u6omgnlq3kvxvfv4llz0vtvbtl',
-    title: '5q1dy6u6omgnlq3kvxvfv4llz0vtvbtl',
-    extension: 'pdf',
+    id: 'gf4ivbey05ntgb2kyqe2g6j6ksewv5j4',
+    title: 'gf4ivbey05ntgb2kyqe2g6j6ksewv5j4',
+    extension: 'png',
     previewImage: null, // Placeholder for now
     dateUploaded: new Date().toLocaleDateString()
     });
+
+    items.push({
+      id: '5q1dy6u6omgnlq3kvxvfv4llz0vtvbtl',
+      title: '5q1dy6u6omgnlq3kvxvfv4llz0vtvbtl',
+      extension: 'pdf',
+      previewImage: null, // Placeholder for now
+      dateUploaded: new Date().toLocaleDateString()
+      });
 
   for (let i = 0; i < count; i++) {
     let ext = fileTypes[Math.floor(Math.random() * fileTypes.length)];
@@ -40,6 +53,35 @@ export default function MainPage() {
     const [items, setItems] = useState(generateItems(numItems));
     const sketchRef = useRef();
     const p5Instance = useRef(null);
+
+    const [pdfModalOpen, setPdfModalOpen] = useState(false);
+    const [imgModalOpen, setImgModalOpen] = useState(false);
+    const [currentFile, setCurrentFile] = useState(null);
+    const [numPages, setNumPages] = useState(null);
+
+    const onDocumentLoadSuccess = ({ numPages }) => {
+      setNumPages(numPages);
+    };
+  
+    const openFile = (file, file_extension) => {
+      if (file_extension === 'jpeg' || file_extension === 'gif' || file_extension === 'png') {
+        console.log(file)
+        setCurrentFile(file);
+        setImgModalOpen(true);
+      } else if (file_extension === 'pdf' || file_extension === 'txt') {
+        setCurrentFile(file);
+        setPdfModalOpen(true);
+      }
+    };
+
+    const handleDownload = (url) => {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'DownloadedFile'; // You can add logic to name the file based on its content or metadata
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
 
     useEffect(() => {
         if (isModalOpen) {
@@ -158,11 +200,13 @@ export default function MainPage() {
     const handleVisualize = () => {
       console.log('Visualize action triggered');
     };
+    
 
     return (
       <div className="container">
         <button className="buttonTop uploadButton" onClick={() => chooseFile()}>Upload File</button>
         <button className="buttonTop visualizeButton" onClick={handleVisualize}>Visualize</button>
+
         <div className="searchBox">
           <FaSearch className="searchIcon leftIcon" />
           <input
@@ -177,15 +221,42 @@ export default function MainPage() {
         {isModalOpen && (
           <div className="modal">
             <div className="modalContent">
-              <button onClick={() => setIsModalOpen(false)}>Close</button>
               <div ref={sketchRef}></div>
+              <button onClick={() => setIsModalOpen(false)}>Search</button>
+            </div>
+          </div>
+        )}
+        {imgModalOpen && (
+          <div className="imageModal">
+            <div className="imageModalContent">
+              <IoArrowDownCircle className="downloadIcon" onClick={() => handleDownload(currentFile)} />
+              <IoClose className="closeIcon" onClick={() => setImgModalOpen(false)} />
+              <img src={currentFile} alt="Document" style={{ maxWidth: '100%', maxHeight: '100%' }} />
+            </div>
+          </div>
+        )}
+        {pdfModalOpen && (
+          <div className="pdfModal">
+            <div className="pdfModalContent">
+              <IoArrowDownCircle className="downloadIcon" onClick={() => handleDownload(currentFile)} />
+              <IoClose className="closeIcon" onClick={() => setPdfModalOpen(false)} />
+              <Document file={currentFile} onLoadSuccess={onDocumentLoadSuccess}>
+                {Array.from(new Array(numPages), (el, index) => (
+                  <Page 
+                    key={`page_${index + 1}`} 
+                    pageNumber={index + 1} 
+                    renderAnnotationLayer={false}
+                    renderTextLayer={false}
+                  />                
+                  ))}
+              </Document>
             </div>
           </div>
         )}
         <div className="grid">
           {items.map(item => (
             <div key={item.id} className="item">
-              <a href={`${BACKEND_URL}/get-file?id=${item.title}`} className="title">{item.title}</a>
+              <a onClick={() => openFile(`${BACKEND_URL}/get-file?id=${item.id}`, item.extension)} className="title">{item.title}</a>
               <div className="previewImage">
                 {getIconForFileType(item.extension)}
               </div>
