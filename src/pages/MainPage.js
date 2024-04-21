@@ -110,16 +110,45 @@ export default function MainPage() {
         input.click();
     };
 
+    // const uploadFile = async (file) => {
+    //     const formData = new FormData();
+    //     formData.append('file', file);
+
+    //     try {
+    //         const response = await fetch(`${BACKEND_URL}/upload-file`, {
+    //             method: 'POST',
+    //             body: formData,
+    //         });
+
+    //         if (response.ok) {
+    //             const responseData = await response.json();
+    //             console.log(responseData.message);
+    //         } else {
+    //             console.error('Failed to upload file');
+    //             const errorResponse = await response.json();
+    //             console.error(errorResponse.message);
+    //         }
+    //     } catch (error) {
+    //         console.error('Failed to upload file', error);
+    //     }
+    // };
     const uploadFile = async (file) => {
         const formData = new FormData();
         formData.append('file', file);
-
+    
+        // Retrieve the token from local storage
+        const token = localStorage.getItem('token');
+    
         try {
             const response = await fetch(`${BACKEND_URL}/upload-file`, {
                 method: 'POST',
+                headers: {
+                    // Include the Authorization header with the token
+                    'Authorization': `Bearer ${token}`
+                },
                 body: formData,
             });
-
+    
             if (response.ok) {
                 const responseData = await response.json();
                 console.log(responseData.message);
@@ -132,6 +161,7 @@ export default function MainPage() {
             console.error('Failed to upload file', error);
         }
     };
+    
 
     return (
         <div className="container">
