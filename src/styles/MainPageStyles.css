@@ -88,15 +88,23 @@
     font-size: 16px;
     font-weight: bold;
     color: #333; /* Optional: enhances readability */
+    overflow: hidden; /* Prevents text from overflowing */
+    white-space: nowrap; /* Keeps the text on a single line */
+    text-overflow: ellipsis; /* Adds an ellipsis when the text overflows */
+    width: 100%; /* Ensure the title width matches the container width */
 }
 
 .previewImage {
-    width: 100%; /* Ensures the image container fills the item box */
-    height: 150px; /* Adjust based on your design needs */
-    background-color: #ccc; /* Placeholder gray color */
+    display: flex; /* Use flexbox for easy centering */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    width: 100%; /* Full width of the item */
+    height: 150px; /* Fixed height, adjust as needed */
     margin-top: 5px;
     margin-bottom: 5px;
+    font-size: 24px; /* Larger size for the icons */
 }
+
 
 .dateUploaded {
     font-size: 12px;

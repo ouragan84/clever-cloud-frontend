@@ -4,28 +4,32 @@ import { FaPencilAlt, FaSearch } from 'react-icons/fa';
 import p5 from 'p5';
 
 import env from "react-dotenv";
+import { IoDocumentSharp, IoDocumentText, IoImage } from "react-icons/io5";
 
 const BACKEND_URL = env.BACKEND_URL;
 
+const fileTypes = ['pdf', 'doc', 'docx', 'txt', 'jpeg', 'gif', 'png'];
+
 const generateItems = (count) => {
   let items = [];
-
   items.push({
-    id: 'i7fg1civit5p3h5muvua90k9urbmsq9k',
-    title: 'i7fg1civit5p3h5muvua90k9urbmsq9k',
+    id: '5q1dy6u6omgnlq3kvxvfv4llz0vtvbtl',
+    title: '5q1dy6u6omgnlq3kvxvfv4llz0vtvbtl',
+    extension: 'pdf',
     previewImage: null, // Placeholder for now
     dateUploaded: new Date().toLocaleDateString()
     });
-  
-  for (let i = 1; i < count; i++) {
-      items.push({
-          id: i,
-          title: `File ${i}`,
-          previewImage: null, // Placeholder for now
-          dateUploaded: new Date().toLocaleDateString()
-      });
-  }
 
+  for (let i = 0; i < count; i++) {
+    let ext = fileTypes[Math.floor(Math.random() * fileTypes.length)];
+    items.push({
+      id: i,
+      title: `File ${i}.${ext}`,
+      extension: ext,
+      previewImage: null, // Placeholder for now
+      dateUploaded: new Date().toLocaleDateString()
+    });
+  }
   return items;
 };
 
@@ -57,6 +61,24 @@ export default function MainPage() {
             }
         };
     }, [isModalOpen]);
+
+    const getIconForFileType = (extension) => {
+      const iconStyle = { color: 'grey', fontSize: '50px' }; // Default style
+      switch(extension) {
+        case 'pdf':
+          return <IoDocumentSharp style={{ ...iconStyle, color: 'red' }} />;
+        case 'doc':
+        case 'docx':
+          return <IoDocumentText style={{ ...iconStyle, color: 'blue' }} />;
+        case 'jpeg':
+        case 'gif':
+        case 'png':
+          return <IoImage style={{ ...iconStyle, color: 'green' }} />;
+        default:
+          return <IoDocumentText style={iconStyle} />;
+      }
+    };
+  
 
     const Sketch = (p) => {
         let currentColor = '#e81416'; // Default color (Red)
@@ -133,37 +155,44 @@ export default function MainPage() {
         }
     };
 
+    const handleVisualize = () => {
+      console.log('Visualize action triggered');
+    };
+
     return (
-        <div className="container">
-            <button className="buttonTop uploadButton" onClick={chooseFile}>Upload File</button>
-            <div className="searchBox">
-                <FaSearch className="searchIcon leftIcon" />
-                <input
-                    type="text"
-                    className="searchInput"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search..."
-                />
-                <FaPencilAlt className="searchIcon rightIcon" onClick={() => setIsModalOpen(true)} />
-            </div>
-            {isModalOpen && (
-                <div className="modal">
-                    <div className="modalContent">
-                        <button onClick={() => setIsModalOpen(false)}>Close</button>
-                        <div ref={sketchRef}></div>
-                    </div>  
-                </div>
-            )}
-            <div className="grid">
-                {items.map(item => (
-                    <div key={item.id} className="item">
-                        <a href={`${BACKEND_URL}/get-file?id=${item.title}`} className="title">{item.title}</a>
-                        <div className="previewImage"></div>
-                        <div className="dateUploaded">{item.dateUploaded}</div>
-                    </div>
-                ))}
-            </div>
+      <div className="container">
+        <button className="buttonTop uploadButton" onClick={() => chooseFile()}>Upload File</button>
+        <button className="buttonTop visualizeButton" onClick={handleVisualize}>Visualize</button>
+        <div className="searchBox">
+          <FaSearch className="searchIcon leftIcon" />
+          <input
+            type="text"
+            className="searchInput"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search..."
+          />
+          <FaPencilAlt className="searchIcon rightIcon" onClick={() => setIsModalOpen(true)} />
         </div>
+        {isModalOpen && (
+          <div className="modal">
+            <div className="modalContent">
+              <button onClick={() => setIsModalOpen(false)}>Close</button>
+              <div ref={sketchRef}></div>
+            </div>
+          </div>
+        )}
+        <div className="grid">
+          {items.map(item => (
+            <div key={item.id} className="item">
+              <a href={`${BACKEND_URL}/get-file?id=${item.title}`} className="title">{item.title}</a>
+              <div className="previewImage">
+                {getIconForFileType(item.extension)}
+              </div>
+              <div className="dateUploaded">{item.dateUploaded}</div>
+            </div>
+          ))}
+        </div>
+      </div>
     );
 }
