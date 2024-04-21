@@ -4,8 +4,8 @@ import { FaPencilAlt, FaSearch } from 'react-icons/fa';
 import p5 from 'p5';
 
 import env from "react-dotenv";
-import { IoDocumentSharp, IoDocumentText, IoImage, IoClose, IoArrowDownCircle } from "react-icons/io5";
 import MyThree from './Three'; 
+import { IoDocumentSharp, IoDocumentText, IoImage, IoClose, IoArrowDownCircle, IoPencil } from "react-icons/io5";
 
 import { Document, Page, pdfjs } from 'react-pdf';
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -73,6 +73,9 @@ export default function MainPage() {
     const [visualizeModalOpen, setVisualizeModalOpen] = useState(false);
 
 
+    const [showSummary, setShowSummary] = useState(false);
+    const [documentSummary, setDocumentSummary] = useState('');
+
     const onDocumentLoadSuccess = ({ numPages }) => {
       setNumPages(numPages);
     };
@@ -87,6 +90,8 @@ export default function MainPage() {
         setPdfModalOpen(true);
       }
     };
+
+
 
     const handleDownload = (url) => {
       const link = document.createElement('a');
@@ -412,7 +417,53 @@ export default function MainPage() {
       setVisualizeModalOpen(true);
       console.log(items)
     };
+
+    function replaceEndpointInUrl(url, currentEndpoint, newEndpoint) {
+        if (!url.includes(currentEndpoint)) {
+            throw new Error(`URL does not contain the endpoint '${currentEndpoint}'.`);
+        }
+        return url.replace(currentEndpoint, newEndpoint);
+    }
     
+
+    const handleToggleSummary = async () => {
+      if (!showSummary) {
+          // Fetch the summary only if it's not already loaded
+          try {
+              const response = await fetch(`${BACKEND_URL}/summarize-pdf`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ pdfUrl: currentFile })
+              });
+              const data = await response.json();
+              setDocumentSummary(data.summary); // Assuming 'summary' is the key in the response
+          } catch (error) {
+              console.error('Failed to fetch summary:', error);
+              alert('Failed to fetch summary. Please try again.');
+              return;
+          }
+      }
+      setShowSummary(!showSummary);
+  };
+
+  const renderModalContent = () => {
+    if (showSummary) {
+        return <div className="pdfSummary">{documentSummary}</div>;
+    } else {
+        return (
+            <Document file={currentFile} onLoadSuccess={({ numPages }) => setNumPages(numPages)}>
+                {Array.from(new Array(numPages), (el, index) => (
+                    <Page 
+                    key={`page_${index + 1}`} 
+                    pageNumber={index + 1} 
+                    renderAnnotationLayer={false}
+                    renderTextLayer={false}
+                  />
+                ))}
+            </Document>
+        );
+    }
+};
 
     return (
       <div className="container">
@@ -465,18 +516,10 @@ export default function MainPage() {
         {pdfModalOpen && (
           <div className="pdfModal">
             <div className="pdfModalContent">
+            <IoPencil className="summaryIcon" onClick={handleToggleSummary} />
               <IoArrowDownCircle className="downloadIcon" onClick={() => handleDownload(currentFile)} />
               <IoClose className="closeIcon" onClick={() => setPdfModalOpen(false)} />
-              <Document file={currentFile} onLoadSuccess={onDocumentLoadSuccess}>
-                {Array.from(new Array(numPages), (el, index) => (
-                  <Page 
-                    key={`page_${index + 1}`} 
-                    pageNumber={index + 1} 
-                    renderAnnotationLayer={false}
-                    renderTextLayer={false}
-                  />                
-                  ))}
-              </Document>
+              {renderModalContent()}
             </div>
           </div>
         )}
