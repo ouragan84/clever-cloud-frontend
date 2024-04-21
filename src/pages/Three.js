@@ -24,7 +24,7 @@ function MyThree({ items }) {
       const { pca_vector } = item;
       if (pca_vector && pca_vector.length === 3) {
         const sphere = new THREE.Mesh(geometry, material);
-        sphere.position.set(pca_vector[0]*5, pca_vector[1]*5, pca_vector[2]*5);
+        sphere.position.set(pca_vector[0]*10, pca_vector[1]*10, pca_vector[2]*10);
         scene.add(sphere);
       }
     });
@@ -33,8 +33,8 @@ function MyThree({ items }) {
     const animate = () => {
       requestAnimationFrame(animate);
       angle += 0.005;
-      camera.position.x = 15 * Math.sin(angle);
-      camera.position.z = 15 * Math.cos(angle);
+      camera.position.x = 5 * Math.sin(angle);
+      camera.position.z = 5 * Math.cos(angle);
       camera.lookAt(new THREE.Vector3(0, 0, 0));
       renderer.render(scene, camera);
     };
