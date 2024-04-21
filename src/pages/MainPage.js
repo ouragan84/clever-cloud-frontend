@@ -4,7 +4,7 @@ import { FaPencilAlt, FaSearch } from 'react-icons/fa';
 import p5 from 'p5';
 
 import env from "react-dotenv";
-import { IoDocumentSharp, IoDocumentText, IoImage, IoClose, IoArrowDownCircle } from "react-icons/io5";
+import { IoDocumentSharp, IoDocumentText, IoImage, IoClose, IoArrowDownCircle, IoPencil } from "react-icons/io5";
 
 import { Document, Page, pdfjs } from 'react-pdf';
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -78,6 +78,8 @@ export default function MainPage() {
         setPdfModalOpen(true);
       }
     };
+
+
 
     const handleDownload = (url) => {
       const link = document.createElement('a');
@@ -265,7 +267,32 @@ export default function MainPage() {
     const handleVisualize = () => {
       console.log('Visualize action triggered');
     };
+
+    function replaceEndpointInUrl(url, currentEndpoint, newEndpoint) {
+        if (!url.includes(currentEndpoint)) {
+            throw new Error(`URL does not contain the endpoint '${currentEndpoint}'.`);
+        }
+        return url.replace(currentEndpoint, newEndpoint);
+    }
     
+
+    const handleSummary = async (currentFile) => {
+        try {
+            console.log('file: ', currentFile)
+            const response = await fetch(replaceEndpointInUrl(currentFile, "get-file", "summarize-pdf"));
+            const data = await response.json();
+            if (response.ok) {
+                console.log('Summary:', data.summary);
+                // Display the summary in the UI or alert for simplicity
+                alert(data.summary);
+            } else {
+                throw new Error(data.message || 'Failed to fetch summary');
+            }
+        } catch (error) {
+            console.error('Error fetching summary:', error);
+            alert('Error fetching summary: ' + error.message);
+        }
+    };
 
     return (
       <div className="container">
@@ -303,6 +330,7 @@ export default function MainPage() {
         {pdfModalOpen && (
           <div className="pdfModal">
             <div className="pdfModalContent">
+              <IoPencil className="summaryIcon" onClick={() => handleSummary(currentFile)} />  
               <IoArrowDownCircle className="downloadIcon" onClick={() => handleDownload(currentFile)} />
               <IoClose className="closeIcon" onClick={() => setPdfModalOpen(false)} />
               <Document file={currentFile} onLoadSuccess={onDocumentLoadSuccess}>
