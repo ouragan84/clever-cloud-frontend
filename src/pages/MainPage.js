@@ -63,6 +63,7 @@ export default function MainPage() {
     const [imgModalOpen, setImgModalOpen] = useState(false);
     const [currentFile, setCurrentFile] = useState(null);
     const [numPages, setNumPages] = useState(null);
+    const [searchVector, setSearchVector] = useState([0, 0, 0]);
 
     const onDocumentLoadSuccess = ({ numPages }) => {
       setNumPages(numPages);
@@ -125,7 +126,8 @@ export default function MainPage() {
             if (p5Instance.current) {
                 const canvas = p5Instance.current.canvas;
                 const base64Image = canvas.toDataURL("image/png");
-                console.log(base64Image);
+                // console.log(base64Image)
+                sendSearchResquestSketch(base64Image);;
                 
                 p5Instance.current.remove(); // Clean up the sketch
                 p5Instance.current = null;
@@ -138,6 +140,152 @@ export default function MainPage() {
             }
         };
     }, [isModalOpen]);
+
+    const sendSearchResquestText = async (searchText) => {
+      // POST request to backend with JSON body
+
+      /*
+      {
+          "method": "text",
+          "query": "Company Logo blue",
+          "limit": 10,
+          "type": {
+              "image": true,
+              "document": false
+          }
+      }
+    */
+
+      const requestBody = {
+        method: "text",
+        query: searchText,
+        limit: 10,
+        type: {
+          image: true,
+          document: true
+        }
+      };
+
+      console.log(requestBody);
+
+      // .then to handle the response
+      // .catch to handle errors
+
+      fetch(`${BACKEND_URL}/search`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      }).then(response => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error('Failed to search');
+        }
+      }).then(data => {
+        console.log(data);
+        // Update the items state with the search results
+        const newItems = data.results.matches.map(match => {
+          const item = match.metadata;
+          const pca_vector = item.pca_representation.map(pca => parseFloat(pca));
+
+          return {
+            id: item.id,
+            title: item.file_name,
+            extension: item.extension,
+            previewImage: null, // Placeholder for now
+            dateUploaded: new Date(item.date_uploaded).toLocaleDateString(),
+            dateModified: new Date(item.date_modified).toLocaleDateString(),
+            userCreated: item.user_created,
+            pca_vector: pca_vector,
+            score: match.score
+          };
+        });
+
+        setItems(newItems);
+
+        const pca_vector_query = data.query_pca_representation.map(pca => parseFloat(pca));
+        setSearchVector(pca_vector_query);
+      }).catch(error => {
+        console.error('Failed to search', error);
+      });
+
+    }
+
+    const sendSearchResquestSketch = async (base64Sketch) => {
+      // same as sendSearchResquestText but with base64Sketch instead of searchText 
+      // POST request to backend with JSON body
+
+      /*
+      {
+          "method": "image",
+          "image": "base64Sketch",
+          "limit": 10,
+          "type": {
+              "image": true,
+              "document": false
+          }
+      }
+    */
+
+      const requestBody = {
+        method: "image",
+        image: base64Sketch,
+        limit: 10,
+        type: {
+          image: true,
+          document: true
+        }
+      };
+
+      console.log(requestBody);
+
+      // .then to handle the response
+      // .catch to handle errors
+
+      fetch(`${BACKEND_URL}/search`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      }).then(response => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error('Failed to search');
+        }
+      }).then(data => {
+        console.log(data);
+        // Update the items state with the search results
+        const newItems = data.results.matches.map(match => {
+          const item = match.metadata;
+          const pca_vector = item.pca_representation.map(pca => parseFloat(pca));
+
+          return {
+            id: item.id,
+            title: item.file_name,
+            extension: item.extension,
+            previewImage: null, // Placeholder for now
+            dateUploaded: new Date(item.date_uploaded).toLocaleDateString(),
+            dateModified: new Date(item.date_modified).toLocaleDateString(),
+            userCreated: item.user_created,
+            pca_vector: pca_vector,
+            score: match.score
+          };
+        });
+
+        setItems(newItems);
+
+        const pca_vector_query = data.query_pca_representation.map(pca => parseFloat(pca));
+        setSearchVector(pca_vector_query);
+      }).catch(error => {
+        console.error('Failed to search', error);
+      });
+
+      
+    }
 
     const getIconForFileType = (extension) => {
       const iconStyle = { color: 'grey', fontSize: '50px' }; // Default style
@@ -273,7 +421,7 @@ export default function MainPage() {
         <button className="buttonTop visualizeButton" onClick={handleVisualize}>Visualize</button>
 
         <div className="searchBox">
-          <FaSearch className="searchIcon leftIcon" />
+          <FaSearch className="searchIcon leftIcon"  onClick={() => sendSearchResquestText(searchTerm)}/>
           <input
             type="text"
             className="searchInput"
