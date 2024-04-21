@@ -182,10 +182,11 @@ export default function MainPage() {
       }).then(data => {
         console.log(data);
         // Update the items state with the search results
+        // Update the items state with the search results
         const newItems = data.results.matches.map(match => {
           const item = match.metadata;
           const pca_vector = item.pca_representation.map(pca => parseFloat(pca));
-    
+
           return {
             id: item.id,
             title: item.file_name,
@@ -198,18 +199,15 @@ export default function MainPage() {
             score: match.score
           };
         });
-    
-        // Sort items to put those with the search text in the file name at the top
-        const prioritizedItems = newItems.sort((a, b) => {
-          const aMatches = a.title.toLowerCase().includes(searchText.toLowerCase());
-          const bMatches = b.title.toLowerCase().includes(searchText.toLowerCase());
-          return bMatches - aMatches; // This will put true values (1) before false values (0)
-        });
-    
-        setItems(prioritizedItems);
-    
+
+        // Sort items by score, higher score first
+        const sortedItems = newItems.sort((a, b) => b.score - a.score);
+
+        setItems(sortedItems);
+
         const pca_vector_query = data.query_pca_representation.map(pca => parseFloat(pca));
         setSearchVector(pca_vector_query);
+
       }).catch(error => {
         console.error('Failed to search', error);
       });
@@ -262,6 +260,7 @@ export default function MainPage() {
       }).then(data => {
         console.log(data);
         // Update the items state with the search results
+        // Update the items state with the search results
         const newItems = data.results.matches.map(match => {
           const item = match.metadata;
           const pca_vector = item.pca_representation.map(pca => parseFloat(pca));
@@ -279,10 +278,14 @@ export default function MainPage() {
           };
         });
 
-        setItems(newItems);
+        // Sort items by score, higher score first
+        const sortedItems = newItems.sort((a, b) => b.score - a.score);
+
+        setItems(sortedItems);
 
         const pca_vector_query = data.query_pca_representation.map(pca => parseFloat(pca));
         setSearchVector(pca_vector_query);
+
       }).catch(error => {
         console.error('Failed to search', error);
       });
