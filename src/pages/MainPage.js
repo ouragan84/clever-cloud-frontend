@@ -5,9 +5,11 @@ import p5 from 'p5';
 
 import env from "react-dotenv";
 import { IoDocumentSharp, IoDocumentText, IoImage, IoClose, IoArrowDownCircle } from "react-icons/io5";
+import MyThree from './Three'; 
 
 import { Document, Page, pdfjs } from 'react-pdf';
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+
 
 
 const BACKEND_URL = env.BACKEND_URL;
@@ -63,6 +65,9 @@ export default function MainPage() {
     const [imgModalOpen, setImgModalOpen] = useState(false);
     const [currentFile, setCurrentFile] = useState(null);
     const [numPages, setNumPages] = useState(null);
+
+    const [visualizeModalOpen, setVisualizeModalOpen] = useState(false);
+
 
     const onDocumentLoadSuccess = ({ numPages }) => {
       setNumPages(numPages);
@@ -263,7 +268,8 @@ export default function MainPage() {
     };
 
     const handleVisualize = () => {
-      console.log('Visualize action triggered');
+      setVisualizeModalOpen(true);
+      console.log(items)
     };
     
 
@@ -271,6 +277,15 @@ export default function MainPage() {
       <div className="container">
         <button className="buttonTop uploadButton" onClick={() => chooseFile()}>Upload File</button>
         <button className="buttonTop visualizeButton" onClick={handleVisualize}>Visualize</button>
+
+        {visualizeModalOpen && (
+          <div className="modal">
+            <div className="modalContent">
+              <IoClose className="closeIcon" onClick={() => setVisualizeModalOpen(false)} />
+              <MyThree items={items} />
+            </div>
+          </div>
+        )}
 
         <div className="searchBox">
           <FaSearch className="searchIcon leftIcon" />
