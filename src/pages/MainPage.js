@@ -64,6 +64,9 @@ export default function MainPage() {
     const [currentFile, setCurrentFile] = useState(null);
     const [numPages, setNumPages] = useState(null);
 
+    const [showSummary, setShowSummary] = useState(false);
+    const [documentSummary, setDocumentSummary] = useState('');
+
     const onDocumentLoadSuccess = ({ numPages }) => {
       setNumPages(numPages);
     };
@@ -276,23 +279,44 @@ export default function MainPage() {
     }
     
 
-    const handleSummary = async (currentFile) => {
-        try {
-            console.log('file: ', currentFile)
-            const response = await fetch(replaceEndpointInUrl(currentFile, "get-file", "summarize-pdf"));
-            const data = await response.json();
-            if (response.ok) {
-                console.log('Summary:', data.summary);
-                // Display the summary in the UI or alert for simplicity
-                alert(data.summary);
-            } else {
-                throw new Error(data.message || 'Failed to fetch summary');
-            }
-        } catch (error) {
-            console.error('Error fetching summary:', error);
-            alert('Error fetching summary: ' + error.message);
-        }
-    };
+    const handleToggleSummary = async () => {
+      if (!showSummary) {
+          // Fetch the summary only if it's not already loaded
+          try {
+              const response = await fetch(`${BACKEND_URL}/summarize-pdf`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ pdfUrl: currentFile })
+              });
+              const data = await response.json();
+              setDocumentSummary(data.summary); // Assuming 'summary' is the key in the response
+          } catch (error) {
+              console.error('Failed to fetch summary:', error);
+              alert('Failed to fetch summary. Please try again.');
+              return;
+          }
+      }
+      setShowSummary(!showSummary);
+  };
+
+  const renderModalContent = () => {
+    if (showSummary) {
+        return <div className="pdfSummary">{documentSummary}</div>;
+    } else {
+        return (
+            <Document file={currentFile} onLoadSuccess={({ numPages }) => setNumPages(numPages)}>
+                {Array.from(new Array(numPages), (el, index) => (
+                    <Page 
+                    key={`page_${index + 1}`} 
+                    pageNumber={index + 1} 
+                    renderAnnotationLayer={false}
+                    renderTextLayer={false}
+                  />
+                ))}
+            </Document>
+        );
+    }
+};
 
     return (
       <div className="container">
@@ -330,19 +354,10 @@ export default function MainPage() {
         {pdfModalOpen && (
           <div className="pdfModal">
             <div className="pdfModalContent">
-              <IoPencil className="summaryIcon" onClick={() => handleSummary(currentFile)} />  
+            <IoPencil className="summaryIcon" onClick={handleToggleSummary} />
               <IoArrowDownCircle className="downloadIcon" onClick={() => handleDownload(currentFile)} />
               <IoClose className="closeIcon" onClick={() => setPdfModalOpen(false)} />
-              <Document file={currentFile} onLoadSuccess={onDocumentLoadSuccess}>
-                {Array.from(new Array(numPages), (el, index) => (
-                  <Page 
-                    key={`page_${index + 1}`} 
-                    pageNumber={index + 1} 
-                    renderAnnotationLayer={false}
-                    renderTextLayer={false}
-                  />                
-                  ))}
-              </Document>
+              {renderModalContent()}
             </div>
           </div>
         )}
