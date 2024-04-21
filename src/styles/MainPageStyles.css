@@ -83,6 +83,9 @@
     flex-direction: column; /* Ensures the content flows vertically */
     justify-content: space-between; /* Distributes space around items */
 }
+.item:hover {
+    background-color: #eaeaea; /* Slight change in color on hover */
+}
 
 .title {
     font-size: 16px;

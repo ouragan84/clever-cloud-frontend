@@ -482,8 +482,8 @@ export default function MainPage() {
         )}
         <div className="grid">
           {items.map(item => (
-            <div key={item.id} className="item">
-              <a onClick={() => openFile(`${BACKEND_URL}/get-file?id=${item.id}`, item.extension)} className="title">{item.title}</a>
+            <div onClick={() => openFile(`${BACKEND_URL}/get-file?id=${item.id}`, item.extension)} key={item.id} className="item">
+              <a  className="title">{item.title}</a>
               <div className="previewImage">
                 {getIconForFileType(item.extension)}
               </div>
